@@ -1,6 +1,8 @@
 package com.example.oqp.common.jwt;
 
 import com.example.oqp.common.custom.CustomUserDetails;
+import com.example.oqp.common.error.CustomException;
+import com.example.oqp.common.error.ErrorCode;
 import com.example.oqp.db.entity.UserInfo;
 import com.example.oqp.db.repository.UserInfoRepository;
 import io.jsonwebtoken.*;
@@ -46,6 +48,10 @@ public class JwtUtil {
         String email = authentication.getName();
         UserInfo userInfo = userInfoRepository.findByEmail(email);
 
+        if(userInfo == null){
+            throw new CustomException(ErrorCode.USER_NOT_FOUND);
+        }
+
         Date accessTokenExpired = new Date(now + 86400000);
         String accessToken = Jwts.builder()
                 .setSubject("accessToken")
@@ -75,7 +81,7 @@ public class JwtUtil {
         Claims claims = parseClaims(token);
 
         if(claims.get("auth") == null){
-            throw new RuntimeException("권한 정보가 없는 토큰입니다.");
+            throw new CustomException(ErrorCode.ROLE_NOT_FOUND);
         }
 
         Collection<? extends GrantedAuthority> authorities = Arrays.stream(claims.get("auth").toString().split(","))
@@ -85,7 +91,7 @@ public class JwtUtil {
         String strId = claims.get("id").toString();
         Long id = Long.valueOf(strId);
 
-        UserInfo userInfo = userInfoRepository.findById(id).orElseThrow(() -> new UsernameNotFoundException("사용자를 찾을 수 없음."));
+        UserInfo userInfo = userInfoRepository.findById(id).orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
 
         UserDetails customUserDetails = new CustomUserDetails(userInfo);
         return new UsernamePasswordAuthenticationToken(customUserDetails, null, authorities);
