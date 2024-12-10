@@ -1,5 +1,6 @@
 package com.example.oqp.domain.auth.restcontroller;
 
+import com.example.oqp.common.error.ErrorResponse;
 import com.example.oqp.common.jwt.JwtTokenResponse;
 import com.example.oqp.db.entity.UserInfo;
 import com.example.oqp.domain.auth.restcontroller.request.LoginRequest;
@@ -30,6 +31,9 @@ public class AuthRestController {
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", content = {
                     @Content(mediaType = "application/json", schema = @Schema(implementation = UserInfo.class))
+            }),
+            @ApiResponse(responseCode = "400", content = {
+                    @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class))
             })
     })
     @PostMapping("/register")
@@ -47,6 +51,12 @@ public class AuthRestController {
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", content = {
                     @Content(mediaType = "application/json", schema = @Schema(implementation = JwtTokenResponse.class))
+            }),
+            @ApiResponse(responseCode = "400", content = {
+                    @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class))
+            }),
+            @ApiResponse(responseCode = "404", content = {
+                    @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class))
             })
     })
     @PostMapping("/login")
