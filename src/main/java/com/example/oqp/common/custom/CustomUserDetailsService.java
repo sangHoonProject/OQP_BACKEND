@@ -1,5 +1,7 @@
 package com.example.oqp.common.custom;
 
+import com.example.oqp.common.error.CustomException;
+import com.example.oqp.common.error.ErrorCode;
 import com.example.oqp.db.entity.UserInfo;
 import com.example.oqp.db.repository.UserInfoRepository;
 import lombok.RequiredArgsConstructor;
@@ -22,7 +24,7 @@ public class CustomUserDetailsService implements UserDetailsService {
         UserInfo userInfo = userInfoRepository.findByEmail(username);
 
         if(userInfo == null){
-            throw new RuntimeException("사용자를 찾지 못했습니다.");
+            throw new CustomException(ErrorCode.USER_NOT_FOUND);
         }
 
         return new CustomUserDetails(userInfo);
