@@ -1,6 +1,8 @@
 package com.example.oqp.domain.auth.service;
 
 import com.example.oqp.common.enums.Role;
+import com.example.oqp.common.error.CustomException;
+import com.example.oqp.common.error.ErrorCode;
 import com.example.oqp.common.jwt.JwtTokenResponse;
 import com.example.oqp.common.jwt.JwtUtil;
 import com.example.oqp.db.entity.UserInfo;
@@ -30,7 +32,7 @@ public class AuthRestService {
     public UserInfo register(RegisterRequest registerRequest) {
 
         if(userInfoRepository.existsByEmail(registerRequest.getEmail())) {
-            throw new RuntimeException("이미 가입된 이메일입니다.");
+            throw new CustomException(ErrorCode.ALREADY_USED_EMAIL);
         }
 
         UserInfo userInfo = toUserInfo(registerRequest);
@@ -49,10 +51,15 @@ public class AuthRestService {
 
     public JwtTokenResponse login(LoginRequest loginRequest) {
 
-        UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(loginRequest.getEmail(), loginRequest.getPassword());
+        try{
+            UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(loginRequest.getEmail(), loginRequest.getPassword());
 
-        Authentication authentication = authenticationManager.authenticate(authenticationToken);
+            Authentication authentication = authenticationManager.authenticate(authenticationToken);
 
-        return jwtUtil.generateToken(authentication);
+            return jwtUtil.generateToken(authentication);
+        }catch (Exception e){
+            throw new CustomException(ErrorCode.LOGIN_FAILED);
+        }
+
     }
 }
