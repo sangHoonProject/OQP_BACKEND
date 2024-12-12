@@ -21,7 +21,7 @@ public class JwtRefresh extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "token", length = 2000)
+    @Column(name = "token", length = 2000, unique = true)
     @Comment("refresh 토큰")
     private String token;
 
