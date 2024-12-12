@@ -75,7 +75,7 @@ public class AuthRestService {
 
             Date expiration = claims.getExpiration();
 
-            LocalDateTime refreshLocalDate = expiration.toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime();
+            LocalDateTime refreshLocalDate = dateToLocalDateTime(expiration);
 
             UserInfo userInfo = userInfoRepository.findByEmail(loginRequest.getEmail());
 
@@ -97,6 +97,10 @@ public class AuthRestService {
 
     }
 
+    private LocalDateTime dateToLocalDateTime(Date expiration) {
+        return expiration.toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime();
+    }
+
     private JwtRefresh toJwtRefresh(String refresh, LocalDateTime refreshLocalDate, UserInfo userInfo) {
         return JwtRefresh.builder()
                 .useYn(UseYn.Y)
@@ -116,30 +120,30 @@ public class AuthRestService {
         }
     }
 
+    @Transactional
     public JwtTokenResponse refresh(RefreshTokenRequest request) {
 
         JwtRefresh originalRefresh = jwtRefreshRepository.findByToken(request.getRefreshToken())
                 .orElseThrow(() -> new CustomException(ErrorCode.REFRESH_TOKEN_NOT_FOUND));
 
-        if(originalRefresh.getUseYn().equals(UseYn.N)){
-            throw new CustomException(ErrorCode.REFRESH_TOKEN_EXPIRE);
-        }
+        validateOriginalRefresh(originalRefresh);
 
         Authentication authentication = jwtUtil.getAuthentication(request.getRefreshToken());
 
         JwtTokenResponse response = jwtUtil.generateToken(authentication);
 
         String refreshToken = response.getRefreshToken();
+
         Claims claims = jwtUtil.parseClaims(refreshToken);
 
-        Integer integerId = (Integer) claims.get("id");
-        Long id = Long.valueOf(integerId);
+        Long id = getUserId(claims);
+
         Date expiration = claims.getExpiration();
 
         UserInfo userInfo = userInfoRepository.findById(id)
                 .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
 
-        LocalDateTime expireLocalDate = expiration.toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime();
+        LocalDateTime expireLocalDate = dateToLocalDateTime(expiration);
 
         List<JwtRefresh> jwtRefreshList = jwtRefreshRepository.findByUserId(id);
 
@@ -148,8 +152,20 @@ public class AuthRestService {
         jwtRefreshRepository.saveAll(jwtRefreshList);
 
         JwtRefresh jwtRefresh = toJwtRefresh(refreshToken, expireLocalDate, userInfo);
+
         jwtRefreshRepository.save(jwtRefresh);
 
         return response;
+    }
+
+    private void validateOriginalRefresh(JwtRefresh originalRefresh) {
+        if(originalRefresh.getUseYn().equals(UseYn.N)){
+            throw new CustomException(ErrorCode.REFRESH_TOKEN_EXPIRE);
+        }
+    }
+
+    private Long getUserId(Claims claims) {
+        Integer integerId = (Integer) claims.get("id");
+        return Long.valueOf(integerId);
     }
 }
