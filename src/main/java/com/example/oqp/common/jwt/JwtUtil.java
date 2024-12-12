@@ -74,6 +74,8 @@ public class JwtUtil {
                 .grantType("Bearer")
                 .accessToken(accessToken)
                 .refreshToken(refreshToken)
+                .nickname(userInfo.getNickname())
+                .accessExpireTime(accessTokenExpired.getTime())
                 .build();
     }
 
