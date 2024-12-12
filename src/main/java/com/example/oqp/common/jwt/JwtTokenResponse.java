@@ -7,6 +7,8 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.Date;
+
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -19,5 +21,9 @@ public class JwtTokenResponse {
     private String accessToken;
 
     private String refreshToken;
+
+    private String nickname;
+
+    private long accessExpireTime;
 
 }
