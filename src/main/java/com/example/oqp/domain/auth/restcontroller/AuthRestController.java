@@ -4,6 +4,7 @@ import com.example.oqp.common.error.ErrorResponse;
 import com.example.oqp.common.jwt.JwtTokenResponse;
 import com.example.oqp.db.entity.UserInfo;
 import com.example.oqp.domain.auth.restcontroller.request.LoginRequest;
+import com.example.oqp.domain.auth.restcontroller.request.RefreshTokenRequest;
 import com.example.oqp.domain.auth.restcontroller.request.RegisterRequest;
 import com.example.oqp.domain.auth.service.AuthRestService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -68,5 +69,29 @@ public class AuthRestController {
             @RequestBody LoginRequest loginRequest
     ) {
         return ResponseEntity.ok(authRestService.login(loginRequest));
+    }
+
+    @Operation(summary = "jwt 토큰 재발급 API", description = "refresh 토큰을 사용해서 토큰 재발급 API")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", content = {
+                    @Content(mediaType = "application/json", schema = @Schema(implementation = JwtTokenResponse.class))
+            }),
+            @ApiResponse(responseCode = "403", content = {
+                    @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class))
+            }, description = "refresh 토큰 만료"),
+            @ApiResponse(responseCode = "404", content = {
+                    @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class))
+            }, description = "refresh 토큰을 찾지 못하거나 사용자를 찾지 못함")
+    })
+    @PostMapping("/refresh")
+    public ResponseEntity<JwtTokenResponse> refresh(
+            @io.swagger.v3.oas.annotations.parameters.RequestBody(
+                    required = true,
+                    description = "토큰 재발급 요청 객체"
+            )
+            @RequestBody RefreshTokenRequest request
+    ){
+
+        return ResponseEntity.ok(authRestService.refresh(request));
     }
 }
