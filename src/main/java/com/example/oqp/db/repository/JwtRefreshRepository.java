@@ -5,8 +5,13 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface JwtRefreshRepository extends JpaRepository<JwtRefresh, Long> {
     @Query(value = "SELECT * FROM jwt_refresh WHERE user_id = :userId AND use_yn = 'Y'", nativeQuery = true)
     List<JwtRefresh> findByUserId(Long userId);
+
+    Optional<JwtRefresh> findByToken(String token);
+
+    boolean existsByToken(String token);
 }
