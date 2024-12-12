@@ -11,6 +11,7 @@ import com.example.oqp.db.entity.UserInfo;
 import com.example.oqp.db.repository.JwtRefreshRepository;
 import com.example.oqp.db.repository.UserInfoRepository;
 import com.example.oqp.domain.auth.restcontroller.request.LoginRequest;
+import com.example.oqp.domain.auth.restcontroller.request.RefreshTokenRequest;
 import com.example.oqp.domain.auth.restcontroller.request.RegisterRequest;
 import io.jsonwebtoken.Claims;
 import lombok.RequiredArgsConstructor;
@@ -113,5 +114,42 @@ public class AuthRestService {
                 }
             });
         }
+    }
+
+    public JwtTokenResponse refresh(RefreshTokenRequest request) {
+
+        JwtRefresh originalRefresh = jwtRefreshRepository.findByToken(request.getRefreshToken())
+                .orElseThrow(() -> new CustomException(ErrorCode.REFRESH_TOKEN_NOT_FOUND));
+
+        if(originalRefresh.getUseYn().equals(UseYn.N)){
+            throw new CustomException(ErrorCode.REFRESH_TOKEN_EXPIRE);
+        }
+
+        Authentication authentication = jwtUtil.getAuthentication(request.getRefreshToken());
+
+        JwtTokenResponse response = jwtUtil.generateToken(authentication);
+
+        String refreshToken = response.getRefreshToken();
+        Claims claims = jwtUtil.parseClaims(refreshToken);
+
+        Integer integerId = (Integer) claims.get("id");
+        Long id = Long.valueOf(integerId);
+        Date expiration = claims.getExpiration();
+
+        UserInfo userInfo = userInfoRepository.findById(id)
+                .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
+
+        LocalDateTime expireLocalDate = expiration.toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime();
+
+        List<JwtRefresh> jwtRefreshList = jwtRefreshRepository.findByUserId(id);
+
+        validateUserRefreshList(jwtRefreshList);
+
+        jwtRefreshRepository.saveAll(jwtRefreshList);
+
+        JwtRefresh jwtRefresh = toJwtRefresh(refreshToken, expireLocalDate, userInfo);
+        jwtRefreshRepository.save(jwtRefresh);
+
+        return response;
     }
 }
