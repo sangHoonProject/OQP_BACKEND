@@ -41,7 +41,7 @@ public class AuthRestController {
     public ResponseEntity<UserInfo> register(
             @io.swagger.v3.oas.annotations.parameters.RequestBody(
                     required = true,
-                    description = "사용자 회원가입 요청 객체"
+                    description = "사용자 회원가입 요청 객체 auth_code는 인증 번호 발송 API로 발송받은 인증 코드를 넣으면 됌"
             )
             @RequestBody RegisterRequest registerRequest
     ) {
