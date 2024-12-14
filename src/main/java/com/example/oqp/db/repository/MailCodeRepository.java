@@ -15,4 +15,6 @@ public interface MailCodeRepository extends JpaRepository<MailCode, Long> {
 
     @Query("select f from MailCode f where f.email = :email and f.code = :code")
     Optional<MailCode> findByEmailAndCode(String email, String code);
+
+    boolean existsByCodeAndEmail(String code, String email);
 }
