@@ -15,7 +15,7 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @Builder
 @ToString
-public class JwtRefresh extends BaseEntity {
+public class JwtRefresh {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
