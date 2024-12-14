@@ -1,6 +1,5 @@
 package com.example.oqp.common.config;
 
-import com.example.oqp.common.custom.CustomOauthService;
 import com.example.oqp.common.custom.CustomUserDetailsService;
 import com.example.oqp.common.jwt.JwtFilter;
 import com.example.oqp.common.jwt.JwtUtil;
@@ -12,7 +11,6 @@ import org.springframework.security.config.annotation.authentication.builders.Au
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
@@ -25,7 +23,6 @@ public class CustomSecurityConfig {
     private final JwtUtil jwtUtil;
     private final CustomUserDetailsService customUserDetailsService;
     private final PasswordEncoder passwordEncoder;
-    private final CustomOauthService customOauthService;
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -43,16 +40,6 @@ public class CustomSecurityConfig {
                 .logout(AbstractHttpConfigurer::disable)
                 .sessionManagement(AbstractHttpConfigurer::disable)
                 .addFilterBefore(new JwtFilter(jwtUtil), UsernamePasswordAuthenticationFilter.class);
-
-        http
-                .oauth2Login(auth -> {
-                    auth.userInfoEndpoint(userInfoEndpointConfig -> {
-                        userInfoEndpointConfig.userService(customOauthService);
-                    });
-                    auth.redirectionEndpoint(redirectionEndpointConfig -> {
-                        redirectionEndpointConfig.baseUri("/dev/login/oauth/google");
-                    });
-                });
 
         return http.build();
     }
