@@ -1,5 +1,6 @@
 package com.example.oqp.common.config;
 
+import com.example.oqp.common.custom.CustomOauthService;
 import com.example.oqp.common.custom.CustomUserDetailsService;
 import com.example.oqp.common.jwt.JwtFilter;
 import com.example.oqp.common.jwt.JwtUtil;
@@ -23,6 +24,8 @@ public class CustomSecurityConfig {
 
     private final JwtUtil jwtUtil;
     private final CustomUserDetailsService customUserDetailsService;
+    private final PasswordEncoder passwordEncoder;
+    private final CustomOauthService customOauthService;
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -41,12 +44,17 @@ public class CustomSecurityConfig {
                 .sessionManagement(AbstractHttpConfigurer::disable)
                 .addFilterBefore(new JwtFilter(jwtUtil), UsernamePasswordAuthenticationFilter.class);
 
-        return http.build();
-    }
+        http
+                .oauth2Login(auth -> {
+                    auth.userInfoEndpoint(userInfoEndpointConfig -> {
+                        userInfoEndpointConfig.userService(customOauthService);
+                    });
+                    auth.redirectionEndpoint(redirectionEndpointConfig -> {
+                        redirectionEndpointConfig.baseUri("/dev/login/oauth/google");
+                    });
+                });
 
-    @Bean
-    public PasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder();
+        return http.build();
     }
 
     @Bean
@@ -55,7 +63,7 @@ public class CustomSecurityConfig {
 
         authenticationManagerBuilder
                 .userDetailsService(customUserDetailsService)
-                .passwordEncoder(passwordEncoder());
+                .passwordEncoder(passwordEncoder);
 
         return authenticationManagerBuilder.build();
 
