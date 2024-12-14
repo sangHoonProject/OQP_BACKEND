@@ -16,6 +16,7 @@ public enum ErrorCode {
 
     USER_NOT_FOUND(404, "존재하지 않는 사용자입니다."),
     REFRESH_TOKEN_NOT_FOUND(404, "존재하지 않는 토큰입니다."),
+    AUTH_CODE_NOT_FOUND(404, "인증 번호를 찾을 수 없습니다."),
 
     EMAIL_SEND_FAILED(500, "이메일 발송에 실패하였습니다.");
 
