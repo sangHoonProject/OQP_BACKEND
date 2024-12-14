@@ -7,8 +7,10 @@ import com.example.oqp.common.error.ErrorCode;
 import com.example.oqp.common.jwt.JwtTokenResponse;
 import com.example.oqp.common.jwt.JwtUtil;
 import com.example.oqp.db.entity.JwtRefresh;
+import com.example.oqp.db.entity.MailCode;
 import com.example.oqp.db.entity.UserInfo;
 import com.example.oqp.db.repository.JwtRefreshRepository;
+import com.example.oqp.db.repository.MailCodeRepository;
 import com.example.oqp.db.repository.UserInfoRepository;
 import com.example.oqp.domain.auth.restcontroller.request.LoginRequest;
 import com.example.oqp.domain.auth.restcontroller.request.RefreshTokenRequest;
@@ -35,6 +37,7 @@ import java.util.stream.Collectors;
 public class AuthRestService {
 
     private final UserInfoRepository userInfoRepository;
+    private final MailCodeRepository mailCodeRepository;
     private final PasswordEncoder passwordEncoder;
     private final AuthenticationManager authenticationManager;
     private final JwtRefreshRepository jwtRefreshRepository;
@@ -42,12 +45,34 @@ public class AuthRestService {
 
     @Transactional
     public UserInfo register(RegisterRequest registerRequest) {
-        if(userInfoRepository.existsByEmail(registerRequest.getEmail())) {
-            throw new CustomException(ErrorCode.ALREADY_USED_EMAIL);
+
+        validateRegisterEmail(registerRequest);
+
+        boolean codeAndEmail = mailCodeRepository.existsByCodeAndEmail(registerRequest.getAuthCode(), registerRequest.getEmail());
+
+        if(codeAndEmail){
+            UserInfo userInfo = toUserInfo(registerRequest);
+
+            MailCode mailCode = mailCodeRepository.findByEmailAndCode(registerRequest.getEmail(), registerRequest.getAuthCode())
+                    .orElseThrow(() -> new CustomException(ErrorCode.AUTH_CODE_OR_EMAIL_NOT_FOUND));
+
+            mailCode.setUseYn(UseYn.Y);
+            mailCodeRepository.save(mailCode);
+
+            return userInfoRepository.save(userInfo);
+        }else{
+            throw new CustomException(ErrorCode.AUTH_CODE_NOT_FOUND);
         }
 
-        UserInfo userInfo = toUserInfo(registerRequest);
-        return userInfoRepository.save(userInfo);
+    }
+
+    private void validateRegisterEmail(RegisterRequest registerRequest) {
+
+        if(userInfoRepository.existsByEmail(registerRequest.getEmail())) {
+
+            throw new CustomException(ErrorCode.ALREADY_USED_EMAIL);
+
+        }
     }
 
     private UserInfo toUserInfo(RegisterRequest registerRequest) {
