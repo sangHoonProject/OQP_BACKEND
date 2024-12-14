@@ -33,8 +33,6 @@ public class AuthEmailRestService {
 
         String email = request.getEmail();
 
-        verifyEmail(email);
-
         String secureCode = createSecureCode();
 
         MimeMessage mimeMessage = setMailMessage(email, secureCode);
@@ -42,16 +40,6 @@ public class AuthEmailRestService {
         try{
 
             javaMailSender.send(mimeMessage);
-
-            List<MailCode> mailCodeList = mailCodeRepository.findByEmailWhereUseYn(email, UseYn.N);
-            if(!mailCodeList.isEmpty()){
-
-                mailCodeList.forEach(mailCode -> {
-                    mailCode.setUseYn(UseYn.Y);
-                });
-
-                mailCodeRepository.saveAll(mailCodeList);
-            }
 
             MailCode mailCode = MailCode.builder()
                     .email(email)
@@ -69,15 +57,6 @@ public class AuthEmailRestService {
 
         }
 
-    }
-
-    private void verifyEmail(String email) {
-
-        if(!userInfoRepository.existsByEmail(email)) {
-
-            throw new CustomException(ErrorCode.USER_NOT_FOUND);
-
-        }
     }
 
     private String createSecureCode() {
@@ -140,29 +119,5 @@ public class AuthEmailRestService {
                 "</div>" +
                 "</body>" +
                 "</html>";
-    }
-
-    public boolean verify(EmailVerifyRequest request) {
-
-        String email = request.getEmail();
-
-        String code = request.getAuthCode();
-
-        MailCode mailCode = mailCodeRepository.findByEmailAndCode(email, code)
-                .orElseThrow(() -> new CustomException(ErrorCode.AUTH_CODE_OR_EMAIL_NOT_FOUND));
-
-        validateMailCodeUseYn(mailCode);
-
-        mailCode.setUseYn(UseYn.Y);
-
-        mailCodeRepository.save(mailCode);
-
-        return true;
-    }
-
-    private void validateMailCodeUseYn(MailCode mailCode) {
-        if(mailCode.getUseYn() == UseYn.Y){
-            throw new CustomException(ErrorCode.AUTH_CODE_USED);
-        }
     }
 }
