@@ -6,6 +6,7 @@ import com.example.oqp.domain.auth.restcontroller.request.EmailSendRequest;
 import com.example.oqp.domain.auth.restcontroller.request.EmailVerifyRequest;
 import com.example.oqp.domain.auth.restcontroller.response.EmailVerifyResponse;
 import com.example.oqp.domain.auth.service.AuthEmailRestService;
+import io.swagger.v3.oas.annotations.Hidden;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -51,41 +52,5 @@ public class AuthEmailRestController {
             @RequestBody EmailSendRequest request
     ) {
         return ResponseEntity.ok(authEmailRestService.send(request));
-    }
-
-    @Operation(summary = "이메일 발송 인증 번호 검증 API", description = "이메일로 전송된 인증번호 검증 API")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", content = {
-                    @Content(mediaType = "application/json", schema = @Schema(implementation = EmailVerifyResponse.class))
-            }),
-            @ApiResponse(responseCode = "400", description = "이미 사용된 인증 번호이거나 인증 번호를 찾을 수 없을때 응답",
-            content = {
-                    @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class))
-            })
-    })
-    @PostMapping("/verify")
-    public ResponseEntity<EmailVerifyResponse> verify(
-            @io.swagger.v3.oas.annotations.parameters.RequestBody(
-                    required = true,
-                    description = "이메일 인증 번호 검증 요청 객체"
-            )
-            @RequestBody EmailVerifyRequest request
-    ) {
-        boolean verify = authEmailRestService.verify(request);
-        EmailVerifyResponse response = new EmailVerifyResponse();
-
-        if (verify) {
-            response = EmailVerifyResponse.builder()
-                    .isVerified(true)
-                    .message("인증이 완료되었습니다.")
-                    .build();
-        }else{
-            response = EmailVerifyResponse.builder()
-                    .isVerified(false)
-                    .message("인증이 실패되었습니다.")
-                    .build();
-        }
-
-        return ResponseEntity.ok(response);
     }
 }
