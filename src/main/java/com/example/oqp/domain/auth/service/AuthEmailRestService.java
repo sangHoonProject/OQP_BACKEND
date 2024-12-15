@@ -4,10 +4,12 @@ import com.example.oqp.common.enums.UseYn;
 import com.example.oqp.common.error.CustomException;
 import com.example.oqp.common.error.ErrorCode;
 import com.example.oqp.db.entity.MailCode;
+import com.example.oqp.db.entity.PasswordAuthCode;
+import com.example.oqp.db.entity.UserInfo;
 import com.example.oqp.db.repository.MailCodeRepository;
+import com.example.oqp.db.repository.PasswordAuthCodeRepository;
 import com.example.oqp.db.repository.UserInfoRepository;
 import com.example.oqp.domain.auth.restcontroller.request.EmailSendRequest;
-import com.example.oqp.domain.auth.restcontroller.request.EmailVerifyRequest;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;
@@ -27,6 +29,7 @@ public class AuthEmailRestService {
 
     private final UserInfoRepository userInfoRepository;
     private final MailCodeRepository mailCodeRepository;
+    private final PasswordAuthCodeRepository passwordAuthCodeRepository;
     private final JavaMailSender javaMailSender;
 
     public MailCode send(EmailSendRequest request) throws MessagingException {
@@ -34,8 +37,9 @@ public class AuthEmailRestService {
         String email = request.getEmail();
 
         String secureCode = createSecureCode();
+        String subject = "Online Quiz Project 이메일 인증";
 
-        MimeMessage mimeMessage = setMailMessage(email, secureCode);
+        MimeMessage mimeMessage = setMailMessage(email, secureCode, subject);
 
         try{
 
@@ -78,7 +82,7 @@ public class AuthEmailRestService {
         return key.toString();
     }
 
-    private MimeMessage setMailMessage(String email, String secureCode) throws MessagingException {
+    private MimeMessage setMailMessage(String email, String secureCode, String subject) throws MessagingException {
 
         MimeMessage mimeMessage = javaMailSender.createMimeMessage();
 
@@ -86,7 +90,7 @@ public class AuthEmailRestService {
 
         helper.setTo(email);
 
-        helper.setSubject("Online Quiz Project 이메일 인증");
+        helper.setSubject(subject);
 
         String content = getMailContent(secureCode);
 
@@ -119,5 +123,53 @@ public class AuthEmailRestService {
                 "</div>" +
                 "</body>" +
                 "</html>";
+    }
+
+    public PasswordAuthCode sendAuthCode(EmailSendRequest request) throws MessagingException {
+
+        String email = request.getEmail();
+
+        UserInfo userInfo = userInfoRepository.findByEmail(email);
+
+        if(userInfo == null){
+            throw new CustomException(ErrorCode.USER_NOT_FOUND);
+        }
+
+        String secureCode = createSecureCode();
+
+        String subject = "Online Quiz Project 비밀번호 재설정 인증";
+
+        MimeMessage mimeMessage = setMailMessage(email, secureCode, subject);
+
+        try{
+
+            javaMailSender.send(mimeMessage);
+
+            List<PasswordAuthCode> authCodes = passwordAuthCodeRepository.findByEmailAndUseYn(email, UseYn.N);
+            if(!authCodes.isEmpty()){
+
+                authCodes.forEach(auth -> {
+                    auth.setUseYn(UseYn.Y);
+                });
+
+                passwordAuthCodeRepository.saveAll(authCodes);
+            }
+
+            PasswordAuthCode passwordAuthCode = PasswordAuthCode.builder()
+                    .authCode(secureCode)
+                    .email(email)
+                    .useYn(UseYn.N)
+                    .build();
+
+            passwordAuthCodeRepository.save(passwordAuthCode);
+
+            return passwordAuthCode;
+
+        }catch (Exception e){
+
+            throw new CustomException(ErrorCode.EMAIL_SEND_FAILED);
+
+        }
+
     }
 }
