@@ -16,5 +16,4 @@ public class EmailVerifyResponse {
 
     private boolean isVerified;
 
-    private String message;
 }
