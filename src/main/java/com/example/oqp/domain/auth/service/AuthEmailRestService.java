@@ -10,6 +10,8 @@ import com.example.oqp.db.repository.MailCodeRepository;
 import com.example.oqp.db.repository.PasswordAuthCodeRepository;
 import com.example.oqp.db.repository.UserInfoRepository;
 import com.example.oqp.domain.auth.restcontroller.request.EmailSendRequest;
+import com.example.oqp.domain.auth.restcontroller.request.EmailVerifyRequest;
+import com.example.oqp.domain.auth.restcontroller.response.EmailVerifyResponse;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;
@@ -131,9 +133,7 @@ public class AuthEmailRestService {
 
         UserInfo userInfo = userInfoRepository.findByEmail(email);
 
-        if(userInfo == null){
-            throw new CustomException(ErrorCode.USER_NOT_FOUND);
-        }
+        validateUserInfo(userInfo);
 
         String secureCode = createSecureCode();
 
@@ -159,6 +159,7 @@ public class AuthEmailRestService {
                     .authCode(secureCode)
                     .email(email)
                     .useYn(UseYn.N)
+                    .authYn(UseYn.N)
                     .build();
 
             passwordAuthCodeRepository.save(passwordAuthCode);
@@ -171,5 +172,27 @@ public class AuthEmailRestService {
 
         }
 
+    }
+
+    private void validateUserInfo(UserInfo userInfo) {
+        if(userInfo == null){
+            throw new CustomException(ErrorCode.USER_NOT_FOUND);
+        }
+    }
+
+    public EmailVerifyResponse verify(EmailVerifyRequest request) {
+
+        PasswordAuthCode passwordAuthCode = passwordAuthCodeRepository
+                .findByEmailAndAuthCodeAndUseYnAndAuthYn(request.getEmail(), request.getAuthCode(), UseYn.N, UseYn.N)
+                .orElseThrow(() -> new CustomException(ErrorCode.AUTH_CODE_OR_EMAIL_NOT_FOUND));
+
+        passwordAuthCode.setUseYn(UseYn.Y);
+        passwordAuthCode.setAuthYn(UseYn.Y);
+
+        passwordAuthCodeRepository.save(passwordAuthCode);
+
+        return EmailVerifyResponse.builder()
+                .isVerified(true)
+                .build();
     }
 }
