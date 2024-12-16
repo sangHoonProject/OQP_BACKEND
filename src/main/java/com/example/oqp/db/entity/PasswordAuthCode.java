@@ -31,4 +31,9 @@ public class PasswordAuthCode extends BaseEntity {
     @Comment("사용 여부")
     @Enumerated(EnumType.STRING)
     private UseYn useYn;
+
+    @Column(name = "auth_yn", nullable = false)
+    @Comment("인증 여부")
+    @Enumerated(EnumType.STRING)
+    private UseYn authYn;
 }
