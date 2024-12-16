@@ -81,4 +81,25 @@ public class AuthEmailRestController {
     ){
         return ResponseEntity.ok(authEmailRestService.sendAuthCode(request));
     }
+
+    @Operation(summary = "비밀번호 재설정 인증 번호 검증 API", description = "이메일로 발송된 인증번호 검증 API")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "성공시 반환", content = {
+                    @Content(mediaType = "application/json", schema = @Schema(implementation = EmailVerifyResponse.class))
+            }),
+            @ApiResponse(responseCode = "400", description = "인증 번호 또는 이메일이 잘못되었을 경우 반환", content = {
+                    @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class))
+            })
+    })
+    @PostMapping("/verify")
+    public ResponseEntity<EmailVerifyResponse> verify(
+            @io.swagger.v3.oas.annotations.parameters.RequestBody(
+                    required = true,
+                    description = "비밀번호 재설정 인증 번호 검증 요청 객체"
+            )
+            @RequestBody EmailVerifyRequest request
+    ){
+
+        return ResponseEntity.ok(authEmailRestService.verify(request));
+    }
 }
