@@ -9,4 +9,6 @@ import java.util.Optional;
 
 public interface PasswordAuthCodeRepository extends JpaRepository<PasswordAuthCode, Long> {
     List<PasswordAuthCode> findByEmailAndUseYn(String email, UseYn useYn);
+
+    Optional<PasswordAuthCode> findByEmailAndAuthCodeAndUseYnAndAuthYn(String email, String authCode, UseYn useYn, UseYn authYn);
 }
