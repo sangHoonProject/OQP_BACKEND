@@ -13,6 +13,7 @@ import com.example.oqp.db.repository.JwtRefreshRepository;
 import com.example.oqp.db.repository.MailCodeRepository;
 import com.example.oqp.db.repository.UserInfoRepository;
 import com.example.oqp.domain.auth.restcontroller.request.LoginRequest;
+import com.example.oqp.domain.auth.restcontroller.request.PasswordUpdateRequest;
 import com.example.oqp.domain.auth.restcontroller.request.RefreshTokenRequest;
 import com.example.oqp.domain.auth.restcontroller.request.RegisterRequest;
 import io.jsonwebtoken.Claims;
@@ -29,7 +30,6 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.Date;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -193,5 +193,24 @@ public class AuthRestService {
     private Long getUserId(Claims claims) {
         Integer integerId = (Integer) claims.get("id");
         return Long.valueOf(integerId);
+    }
+
+    public UserInfo passwordUpdate(PasswordUpdateRequest passwordUpdateRequest) {
+        UserInfo userInfo = userInfoRepository.findByEmail(passwordUpdateRequest.getEmail());
+
+        if(userInfo == null){
+            throw new CustomException(ErrorCode.USER_NOT_FOUND);
+        }
+
+        String password = userInfo.getPassword();
+        boolean matches = passwordEncoder.matches(passwordUpdateRequest.getOldPassword(), password);
+        if(!matches){
+            throw new CustomException(ErrorCode.PASSWORD_NOT_MATCHED);
+        }
+
+        String newPassword = passwordEncoder.encode(passwordUpdateRequest.getNewPassword());
+        userInfo.setPassword(newPassword);
+
+        return userInfoRepository.save(userInfo);
     }
 }
