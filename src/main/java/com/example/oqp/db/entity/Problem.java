@@ -34,9 +34,4 @@ public class Problem extends BaseEntity {
     @Column(name = "crr_yn", length = 1, nullable = false)
     @Comment("정답 여부")
     private UseYn currentYn;
-
-    // 지연 로딩 설정
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "content_id", nullable = false)
-    private Content content;
 }
