@@ -4,6 +4,7 @@ import com.example.oqp.common.error.ErrorResponse;
 import com.example.oqp.common.jwt.JwtTokenResponse;
 import com.example.oqp.db.entity.UserInfo;
 import com.example.oqp.domain.auth.restcontroller.request.LoginRequest;
+import com.example.oqp.domain.auth.restcontroller.request.PasswordUpdateRequest;
 import com.example.oqp.domain.auth.restcontroller.request.RefreshTokenRequest;
 import com.example.oqp.domain.auth.restcontroller.request.RegisterRequest;
 import com.example.oqp.domain.auth.service.AuthRestService;
@@ -93,5 +94,28 @@ public class AuthRestController {
     ){
 
         return ResponseEntity.ok(authRestService.refresh(request));
+    }
+
+    @Operation(summary = "비밀번호 재설정 API", description = "추후 권한 설정할때 요청 객체가 바뀔 수 있음")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "성공", content = {
+                    @Content(mediaType = "application/json", schema = @Schema(implementation = UserInfo.class))
+            }),
+            @ApiResponse(responseCode = "404", description = "사용자를 찾지 못했을 경우 반환", content = {
+                    @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class))
+            }),
+            @ApiResponse(responseCode = "400", description = "비밀번호가 일치하지 않을 경우 반환", content = {
+                    @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class))
+            })
+    })
+    @PostMapping("/password-update")
+    public ResponseEntity<UserInfo> passwordUpdate(
+            @io.swagger.v3.oas.annotations.parameters.RequestBody(
+                    required = true,
+                    description = "비밀번호 재설정 요청 객체"
+            )
+            @RequestBody PasswordUpdateRequest passwordUpdateRequest
+    ){
+        return ResponseEntity.ok(authRestService.passwordUpdate(passwordUpdateRequest));
     }
 }
