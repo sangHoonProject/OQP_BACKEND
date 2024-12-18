@@ -82,6 +82,7 @@ public class AuthRestService {
                 .nickname(registerRequest.getNickname())
                 .role(Role.ROLE_USER)
                 .totalHeartCount(0)
+                .contentId(null)
                 .build();
     }
 
