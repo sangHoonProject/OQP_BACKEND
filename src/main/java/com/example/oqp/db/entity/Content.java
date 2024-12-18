@@ -51,7 +51,7 @@ public class Content extends BaseEntity {
     @JoinColumn(name = "user_id", nullable = false)
     private UserInfo user;
 
-    // 지연 로딩 설정 & 콘텐츠 삭제시 콘텐츠와 관련된 모든 문제들 삭제
-    @OneToMany(mappedBy = "content", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
-    private List<Problem> problem;
+    @Column(name = "problem_id")
+    @Comment("문제 테이블 기본키")
+    private Long problemId;
 }
