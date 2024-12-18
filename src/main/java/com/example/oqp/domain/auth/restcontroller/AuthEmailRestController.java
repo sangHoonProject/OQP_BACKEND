@@ -2,19 +2,16 @@ package com.example.oqp.domain.auth.restcontroller;
 
 import com.example.oqp.common.error.ErrorResponse;
 import com.example.oqp.db.entity.MailCode;
-import com.example.oqp.db.entity.PasswordAuthCode;
+import com.example.oqp.db.entity.UserInfo;
 import com.example.oqp.domain.auth.restcontroller.request.EmailSendRequest;
-import com.example.oqp.domain.auth.restcontroller.request.EmailVerifyRequest;
-import com.example.oqp.domain.auth.restcontroller.response.EmailVerifyResponse;
+import com.example.oqp.domain.auth.restcontroller.request.PasswordResetRequest;
 import com.example.oqp.domain.auth.service.AuthEmailRestService;
-import io.swagger.v3.oas.annotations.Hidden;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import jakarta.mail.MessagingException;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import org.springframework.http.ResponseEntity;
@@ -59,47 +56,26 @@ public class AuthEmailRestController {
     }
 
     @SneakyThrows
-    @Operation(summary = "비밀번호 재설정 메일 발송 API", description = "비밀번호 분실 또는 재설정 필요 시 호출하는 API")
+    @Operation(summary = "임시 비밀번호 발급 API", description = "발급된 임시 비밀번호 메일 발송 API")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "발송 성공", content = {
-                    @Content(mediaType = "application/json", schema = @Schema(implementation = PasswordAuthCode.class))
+            @ApiResponse(responseCode = "200", description = "성공", content = {
+                    @Content(mediaType = "application/json", schema = @Schema(implementation = UserInfo.class))
             }),
-            @ApiResponse(responseCode = "404", description = "비밀번호 재설정할 사용자를 찾지 못했을 경우 반환", content = {
+            @ApiResponse(responseCode = "404", description = "사용자를 찾지 못했을 경우 반환", content = {
                     @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class))
             }),
-            @ApiResponse(responseCode = "500", description = "이메일 발송 실패시 반환", content = {
+            @ApiResponse(responseCode = "500", description = "이메일 발송에 실패했을 경우 반환", content = {
                     @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class))
             })
     })
-    @PostMapping("/password-code")
-    public ResponseEntity<PasswordAuthCode> sendAuthCode(
+    @PostMapping("/password-reset")
+    public ResponseEntity<UserInfo> passwordReset(
             @io.swagger.v3.oas.annotations.parameters.RequestBody(
                     required = true,
-                    description = "비밀번호 재설정 인증 코드 발급 요청 객체"
+                    description = "이메일 전송 요청 객체"
             )
-            @RequestBody EmailSendRequest request
+            @RequestBody PasswordResetRequest passwordResetRequest
     ){
-        return ResponseEntity.ok(authEmailRestService.sendAuthCode(request));
-    }
-
-    @Operation(summary = "비밀번호 재설정 인증 번호 검증 API", description = "이메일로 발송된 인증번호 검증 API")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "성공시 반환", content = {
-                    @Content(mediaType = "application/json", schema = @Schema(implementation = EmailVerifyResponse.class))
-            }),
-            @ApiResponse(responseCode = "400", description = "인증 번호 또는 이메일이 잘못되었을 경우 반환", content = {
-                    @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class))
-            })
-    })
-    @PostMapping("/verify")
-    public ResponseEntity<EmailVerifyResponse> verify(
-            @io.swagger.v3.oas.annotations.parameters.RequestBody(
-                    required = true,
-                    description = "비밀번호 재설정 인증 번호 검증 요청 객체"
-            )
-            @RequestBody EmailVerifyRequest request
-    ){
-
-        return ResponseEntity.ok(authEmailRestService.verify(request));
+        return ResponseEntity.ok(authEmailRestService.passwordReset(passwordResetRequest));
     }
 }
