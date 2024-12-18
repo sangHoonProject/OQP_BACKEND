@@ -10,6 +10,7 @@ public enum ErrorCode {
     ALREADY_USED_EMAIL(400, "이미 사용된 이메일입니다."),
     AUTH_CODE_OR_EMAIL_NOT_FOUND(400, "잘못된 인증 번호 또는 이메일입니다."),
     AUTH_CODE_USED(400, "이미 사용된 인증 번호입니다."),
+    PASSWORD_NOT_MATCHED(400, "비밀번호가 일치하지 않습니다."),
 
     ROLE_NOT_FOUND(403, "권한 정보가 없습니다."),
     REFRESH_TOKEN_EXPIRE(403, "refresh 토큰이 만료되었습니다."),
