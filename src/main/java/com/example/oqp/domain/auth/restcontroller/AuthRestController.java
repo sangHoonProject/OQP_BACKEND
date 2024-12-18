@@ -31,10 +31,13 @@ public class AuthRestController {
 
     @Operation(summary = "사용자 회원가입 API", description = "사용자 회원가입 API")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", content = {
+            @ApiResponse(responseCode = "200", description = "성공", content = {
                     @Content(mediaType = "application/json", schema = @Schema(implementation = UserInfo.class))
             }),
-            @ApiResponse(responseCode = "400", content = {
+            @ApiResponse(responseCode = "400", description = "이메일 찾지 못했을 경우 발생", content = {
+                    @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class))
+            }),
+            @ApiResponse(responseCode = "404", description = "잘못된 인증 코드 전달", content = {
                     @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class))
             })
     })
