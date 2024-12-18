@@ -43,6 +43,7 @@ public class UserInfo extends BaseEntity {
     @Comment("총 하트 수")
     private Integer totalHeartCount;
 
-    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    private List<Content> contents;
+    @Column(name = "content_id")
+    @Comment("콘텐츠 테이블 기본키")
+    private Long contentId;
 }
